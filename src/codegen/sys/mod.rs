@@ -13,9 +13,9 @@ mod tests;
 pub fn generate(env: &Env) {
     generate_single_version_file(env);
     lib_::generate(env);
+    build::generate(env);
 
-    if !env.config.self_linking {
-        build::generate(env);
+    if env.config.self_linking {
         let crate_name = cargo_toml::generate(env);
         tests::generate(env, &crate_name);
     }
