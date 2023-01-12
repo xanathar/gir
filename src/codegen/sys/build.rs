@@ -30,38 +30,36 @@ pub fn generate(env: &Env) {
 
 #[allow(clippy::write_literal)]
 fn generate_build_script(w: &mut dyn Write, env: &Env, split_build_rs: bool) -> Result<()> {
+    let (script_cfg_attr, script_cfg_attr_not) = if env.config.optional_link_attribute {
+        (r#"#[cfg(any(feature = "dox", feature = "omit_link_attribute"))]"#, r#"#[cfg(not(any(feature = "dox", feature = "omit_link_attribute")))]"#)
+    } else {
+        (r#"#[cfg(feature = "dox")]"#, r#"#[cfg(not(feature = "dox"))]"#)
+    };
+
     if !split_build_rs {
         general::start_comments(w, &env.config)?;
         writeln!(w)?;
     }
-    writeln!(
-        w,
-        "{}",
-        r##"#[cfg(not(feature = "dox"))]
-use std::process;"##
-    )?;
+
+    writeln!(w, "{}", script_cfg_attr_not)?;
+    writeln!(w, "{}", "use std::process;")?;
 
     if split_build_rs {
         writeln!(w)?;
         writeln!(w, "mod build_version;")?;
     }
 
-    write!(
-        w,
-        "{}",
-        r##"
-#[cfg(feature = "dox")]
-fn main() {} // prevent linking libraries to avoid documentation failure
-
-#[cfg(not(feature = "dox"))]
-fn main() {
-    if let Err(s) = system_deps::Config::new().probe() {
-        println!("cargo:warning={s}");
-        process::exit(1);
-    }
-}
-"##
-    )
+    writeln!(w, "{}", script_cfg_attr)?;
+    writeln!(w, "{}", "fn main() {} // prevent linking libraries to avoid documentation or self-link failure")?;
+    writeln!(w)?;
+    writeln!(w, "{}", script_cfg_attr_not)?;
+    writeln!(w, "{}", r##"fn main() {
+        if let Err(s) = system_deps::Config::new().probe() {
+            println!("cargo:warning={s}");
+            process::exit(1);
+        }
+    }"##)?;
+    writeln!(w)
 }
 
 fn generate_build_version(w: &mut dyn Write, env: &Env) -> Result<()> {
