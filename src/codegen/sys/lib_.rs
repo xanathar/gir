@@ -35,11 +35,11 @@ fn write_link_attr(w: &mut dyn Write, shared_libs: &[String]) -> Result<()> {
     Ok(())
 }
 
-fn write_link_attr_self_link(w: &mut dyn Write, shared_libs: &[String]) -> Result<()> {
+fn write_link_attr_optional(w: &mut dyn Write, shared_libs: &[String]) -> Result<()> {
     for it in shared_libs {
         writeln!(
             w,
-            "#[cfg_attr(not(feature = \"self_link\"), link(name = \"{}\"))]",
+            "#[cfg_attr(not(feature = \"omit_link_attribute\"), link(name = \"{}\"))]",
             shared_lib_name_to_link_name(it)
         )?;
     }
@@ -83,8 +83,8 @@ fn generate_lib(w: &mut dyn Write, env: &Env) -> Result<()> {
     generate_classes_structs(w, env, &classes)?;
     generate_interfaces_structs(w, env, &interfaces)?;
 
-    if env.config.self_linking {
-        write_link_attr_self_link(w, &env.namespaces.main().shared_libs)?;
+    if env.config.optional_link_attribute {
+        write_link_attr_optional(w, &env.namespaces.main().shared_libs)?;
     } else {
         write_link_attr(w, &env.namespaces.main().shared_libs)?;
     }

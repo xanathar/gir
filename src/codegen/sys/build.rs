@@ -30,8 +30,8 @@ pub fn generate(env: &Env) {
 
 #[allow(clippy::write_literal)]
 fn generate_build_script(w: &mut dyn Write, env: &Env, split_build_rs: bool) -> Result<()> {
-    let (script_cfg_attr, script_cfg_attr_not) = if env.config.self_linking {
-        (r#"#[cfg(any(feature = "dox", feature = "self_link"))]"#, r#"#[cfg(not(any(feature = "dox", feature = "self_link")))]"#)
+    let (script_cfg_attr, script_cfg_attr_not) = if env.config.optional_link_attribute {
+        (r#"#[cfg(any(feature = "dox", feature = "omit_link_attribute"))]"#, r#"#[cfg(not(any(feature = "dox", feature = "omit_link_attribute")))]"#)
     } else {
         (r#"#[cfg(feature = "dox")]"#, r#"#[cfg(not(feature = "dox"))]"#)
     };

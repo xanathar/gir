@@ -115,7 +115,7 @@ pub struct Config {
     pub docs_rs_features: Vec<String>,
     pub disable_format: bool,
     pub split_build_rs: bool,
-    pub self_linking: bool,
+    pub optional_link_attribute: bool,
     pub extra_versions: Vec<Version>,
     pub lib_version_overrides: HashMap<Version, Version>,
     pub feature_dependencies: HashMap<Version, Vec<String>>,
@@ -342,8 +342,8 @@ impl Config {
             None => false,
         };
 
-        let self_linking = match toml.lookup("options.self_linking") {
-            Some(v) => v.as_result_bool("options.self_linking")?,
+        let optional_link_attribute = match toml.lookup("options.optional_link_attribute") {
+            Some(v) => v.as_result_bool("options.optional_link_attribute")?,
             None => false,
         };
 
@@ -375,7 +375,7 @@ impl Config {
             docs_rs_features,
             disable_format,
             split_build_rs,
-            self_linking,
+            optional_link_attribute,
             extra_versions,
             lib_version_overrides,
             feature_dependencies,
