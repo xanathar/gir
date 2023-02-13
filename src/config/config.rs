@@ -115,6 +115,7 @@ pub struct Config {
     pub trust_return_value_nullability: bool,
     pub disable_format: bool,
     pub split_build_rs: bool,
+    pub optional_link_attribute: bool,
     pub extra_versions: Vec<Version>,
     pub lib_version_overrides: HashMap<Version, Version>,
     pub feature_dependencies: HashMap<Version, Vec<String>>,
@@ -327,6 +328,11 @@ impl Config {
             None => false,
         };
 
+        let optional_link_attribute = match toml.lookup("options.optional_link_attribute") {
+            Some(v) => v.as_result_bool("options.optional_link_attribute")?,
+            None => false,
+        };
+
         let extra_versions = read_extra_versions(&toml)?;
         let lib_version_overrides = read_lib_version_overrides(&toml)?;
         let feature_dependencies = read_feature_dependencies(&toml)?;
@@ -354,6 +360,7 @@ impl Config {
             trust_return_value_nullability,
             disable_format,
             split_build_rs,
+            optional_link_attribute,
             extra_versions,
             lib_version_overrides,
             feature_dependencies,
