@@ -132,6 +132,10 @@ fn fill_in(root: &mut Table, env: &Env) {
             features.insert(version.to_feature(), Value::Array(prev_array));
             Some(version)
         });
+
+        if env.config.optional_link_attribute {
+            features.insert("omit_link_attribute".to_string(), Value::Array(vec![]));
+        }
     }
 
     {
