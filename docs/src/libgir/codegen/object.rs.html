@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-6827029ac823cab7.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-ebce58d0a40c3431.css"><link rel="stylesheet" disabled href="../../../static.files/dark-f23faae4a2daf9a6.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-8af5e100b21cd173.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-5cf2e01a42cc9858.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-c55e1eb52e1886b4.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../libgir/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/codegen/object.rs`."><title>object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="libgir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.1 (eb26296b5 2023-08-03)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../libgir/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -590,19 +590,7 @@
 <a href="#590" id="590">590</a>
 <a href="#591" id="591">591</a>
 <a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-</pre><pre class="rust"><code><span class="kw">use </span>std::{
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{BTreeMap, HashSet},
     io::{<span class="prelude-ty">Result</span>, Write},
 };
@@ -610,7 +598,7 @@
 <span class="kw">use super</span>::{
     child_properties, function, general,
     general::{
-        cfg_deprecated_string, not_version_condition_no_dox, version_condition,
+        cfg_deprecated_string, not_version_condition_no_docsrs, version_condition,
         version_condition_no_doc, version_condition_string,
     },
     properties, signal, trait_impls,
@@ -732,7 +720,14 @@
 
                 <span class="macro">writeln!</span>(w)<span class="question-mark">?</span>;
                 <span class="kw">if </span>previous_version.is_some() {
-                    not_version_condition_no_dox(w, env, <span class="prelude-val">Some</span>(<span class="kw-2">*</span>ns_id), previous_version, <span class="bool-val">false</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
+                    not_version_condition_no_docsrs(
+                        w,
+                        env,
+                        <span class="prelude-val">Some</span>(<span class="kw-2">*</span>ns_id),
+                        previous_version,
+                        <span class="bool-val">false</span>,
+                        <span class="number">0</span>,
+                    )<span class="question-mark">?</span>;
                     version_condition_no_doc(w, env, <span class="prelude-val">Some</span>(<span class="kw-2">*</span>ns_id), version, <span class="bool-val">false</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
                     version_condition(w, env, <span class="prelude-val">Some</span>(<span class="kw-2">*</span>ns_id), version, <span class="bool-val">false</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
@@ -766,7 +761,7 @@
             .cloned()
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="macro">writeln!</span>(w)<span class="question-mark">?</span>;
-        not_version_condition_no_dox(w, env, previous_ns_id, previous_version, <span class="bool-val">false</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
+        not_version_condition_no_docsrs(w, env, previous_ns_id, previous_version, <span class="bool-val">false</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
         general::define_object_type(
             w,
             env,
@@ -1081,41 +1076,15 @@
 }
 
 <span class="kw">fn </span>generate_trait(w: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write, env: <span class="kw-2">&amp;</span>Env, analysis: <span class="kw-2">&amp;</span>analysis::object::Info) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="macro">write!</span>(w, <span class="string">&quot;pub trait {}: &#39;static {{&quot;</span>, analysis.trait_name)<span class="question-mark">?</span>;
-
-    <span class="kw">for </span>func_analysis <span class="kw">in </span><span class="kw-2">&amp;</span>analysis.methods() {
-        function::generate(
-            w,
-            env,
-            <span class="prelude-val">Some</span>(analysis.type_id),
-            func_analysis,
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>analysis.specials),
-            analysis.version,
-            <span class="bool-val">true</span>,
-            <span class="bool-val">true</span>,
-            <span class="number">1</span>,
-        )<span class="question-mark">?</span>;
-    }
-    <span class="kw">for </span>property <span class="kw">in </span><span class="kw-2">&amp;</span>analysis.properties {
-        properties::generate(w, env, property, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
-    }
-    <span class="kw">for </span>child_property <span class="kw">in </span><span class="kw-2">&amp;</span>analysis.child_properties {
-        child_properties::generate(w, env, child_property, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
-    }
-    <span class="kw">for </span>signal_analysis <span class="kw">in </span>analysis
-        .signals
-        .iter()
-        .chain(analysis.notify_signals.iter())
-    {
-        signal::generate(w, env, signal_analysis, <span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
-    }
-    <span class="macro">writeln!</span>(w, <span class="string">&quot;}}&quot;</span>)<span class="question-mark">?</span>;
-
-    <span class="macro">writeln!</span>(w)<span class="question-mark">?</span>;
     <span class="macro">write!</span>(
         w,
-        <span class="string">&quot;impl&lt;O: IsA&lt;{}&gt;&gt; {} for O {{&quot;</span>,
-        analysis.name, analysis.trait_name,
+        <span class="string">&quot;mod sealed {{
+    pub trait Sealed {{}}
+    impl&lt;T: super::IsA&lt;super::{1}&gt;&gt; Sealed for T {{}}
+}}
+
+pub trait {}: IsA&lt;{}&gt; + sealed::Sealed + &#39;static {{&quot;</span>,
+        analysis.trait_name, analysis.name
     )<span class="question-mark">?</span>;
 
     <span class="kw">for </span>func_analysis <span class="kw">in </span><span class="kw-2">&amp;</span>analysis.methods() {
@@ -1145,6 +1114,13 @@
         signal::generate(w, env, signal_analysis, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
     }
     <span class="macro">writeln!</span>(w, <span class="string">&quot;}}&quot;</span>)<span class="question-mark">?</span>;
+
+    <span class="macro">writeln!</span>(w)<span class="question-mark">?</span>;
+    <span class="macro">writeln!</span>(
+        w,
+        <span class="string">&quot;impl&lt;O: IsA&lt;{}&gt;&gt; {} for O {{}}&quot;</span>,
+        analysis.name, analysis.trait_name,
+    )<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
 }
@@ -1206,5 +1182,4 @@
         ));
     }
 }
-</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="libgir" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0 (fc594f156 2023-01-24)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</code></pre></div></section></main></body></html>
