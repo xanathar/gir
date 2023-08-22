@@ -70,10 +70,12 @@
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             var html = document.querySelector('html');
-            var sidebar = 'hidden';
+            var sidebar = null;
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
             }
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
@@ -86,11 +88,33 @@
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
@@ -171,8 +195,15 @@ You can do this by running the following commands:</p>
 <pre><code class="language-sh">rustdoc-stripper -s -n
 rustdoc-stripper -g -o docs.md
 </code></pre>
-<p>Try building the documentation and also try it with the various features you might have</p>
+<p>Try building the documentation and also try it with the various features you might have:</p>
 <pre><code class="language-sh">cargo doc
+</code></pre>
+<p>For building the docs on systems without the required dependencies installed (for example docs.rs or CI jobs), you can use the <code>docsrs</code> attribute.
+This will disable the linking of the underlying C libraries and won't throw an error if those libraries are not available.</p>
+<p>On top of that, the <code>docsrs</code> attribute will enable the <a href="https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html">doc_cfg feature</a> which is only available in the nightly compiler toolchain at the time of writing.
+This is mostly useful for clarifying feature requirements through the docs.</p>
+<p>To build the docs with the <code>docsrs</code> attribute, you can use the following command:</p>
+<pre><code class="language-sh">RUSTFLAGS='--cfg docsrs' RUSTDOCFLAGS='--cfg docsrs' cargo +nightly doc --all-features
 </code></pre>
 <p>Congratulations, we are done.
 You have successfully created the safe wrapper for a C library!</p>
@@ -183,7 +214,7 @@ All that is needed is to add some information to your Cargo.toml.
 Gir will not override them when you re-generate bindings.
 Easy, right.
 If this is your first time publishing a crate, you can find a detailed guide <a href="https://doc.rust-lang.org/cargo/reference/publishing.html">here</a>.</p>
-<p>Before you publish the crate, please ensure docs.rs will activate the dox feature and the dox feature of the safe wrapper crate also activates the feature of its dependencies and the unsafe FFI bindings you created.
+<p>Before you publish the crate, please ensure docs.rs will activate the <code>docsrs</code> attribute.
 Feel free to go back to the chapter about the <a href="high_level_rust_api.html#the-cargotoml-file">Cargo.toml file of the safe wrapper</a> to read more about it.
 If you skip this step, your crate and all crates depending on it will not have documentation available on docs.rs.</p>
 

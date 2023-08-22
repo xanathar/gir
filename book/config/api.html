@@ -70,10 +70,12 @@
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             var html = document.querySelector('html');
-            var sidebar = 'hidden';
+            var sidebar = null;
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
             }
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
@@ -86,11 +88,33 @@
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
@@ -259,6 +283,8 @@ visibility = &quot;pub&quot; # or 'crate' / 'private' / 'super'
 # The default value to used for the `Default` implementation. It only
 # works for flags and enums. You have to pass the &quot;GIR&quot; member name.
 default_value = &quot;fill&quot;
+# Change the name of the generated trait to e.g avoid naming conflicts
+trait_name = &quot;TraitnameExt&quot; 
 # In case you don't want to generate the documentation for this type.
 generate_doc = false
     # define overrides for function
@@ -335,6 +361,31 @@ generate_doc = false
             [[object.function.parameter.callback_parameter]]
             name = &quot;name_of_the_callback_parameter&quot;
             nullable = true
+    # virtual methods support the same configuration for parameters and return types as functions
+    # note that they are not used for code generation yet.
+    [[object.virtual_method]]
+    # filter virtual method from object
+    name = &quot;set_website_label&quot;
+    # alternative way to apply override for many functions. Will be used with '^' and '$' on both sides
+    # can be used instead of `name` almost anywhere
+    # pattern = &quot;[gs]et_value&quot;
+    # don't generate function
+    ignore = true
+    # override starting version
+    version = &quot;3.12&quot;
+    # prefixed function with #[cfg(mycond)]
+    cfg_condition = &quot;mycond&quot;
+    # prefixed function with #[doc(hidden)]
+    doc_hidden = true
+    # define a list of function parameters to be ignored when the documentation is generated
+    doc_ignore_parameters = [&quot;some_user_data_param&quot;]
+    # write function docs to trait other than default &quot;xxxExt&quot;,
+    # also works in [object.signal] and [object.property]
+    doc_trait_name = &quot;SocketListenerExtManual&quot;
+    # to rename the generated function
+    rename = &quot;something_else&quot;
+    # In case you don't want to generate the documentation for this method.
+    generate_doc = false
     [[object.signal]]
     name = &quot;activate-link&quot;
     # replace trampoline bool return type with `Inhibit`

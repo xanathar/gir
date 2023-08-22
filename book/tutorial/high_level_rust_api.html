@@ -70,10 +70,12 @@
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             var html = document.querySelector('html');
-            var sidebar = 'hidden';
+            var sidebar = null;
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
             }
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
@@ -86,11 +88,33 @@
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
@@ -158,10 +182,14 @@ Open the Cargo.toml file and have a look at it.
 Make sure everything under <code>[package]</code> is to your liking.</p>
 <p>Add the following lines to the file:</p>
 <pre><code class="language-toml">[package.metadata.docs.rs]
-features = [&quot;dox&quot;]
+all-features = true
+# For build.rs scripts
+rustc-args = [&quot;--cfg&quot;, &quot;docsrs&quot;]
+# For rustdoc
+rustdoc-args = [&quot;--cfg&quot;, &quot;docsrs&quot;]
 </code></pre>
-<p>This automatically activates the <code>dox</code> feature if you chose to publish the bindings and docs.rs tries to build the documentation.
-The <code>dox</code> feature skips linking the C libraries and allows docs.rs to build the documentation without having the underlying libraries installed.
+<p>This automatically activates the <code>docsrs</code> attribute if you chose to publish the bindings and docs.rs tries to build the documentation.
+With the <code>docsrs</code> attribute, the crate skips linking the C libraries and allows docs.rs to build the documentation without having the underlying libraries installed.
 Even if you don't plan to publish it, this line is not going to hurt.</p>
 <p>We also need to add <code>libc</code>, <code>bitflags</code>, <code>glib</code> and <code>glib-sys</code> and all other dependencies we used in the sys crate as dependencies.
 Because we are creating a wrapper for the sys crate, which we generated in the previous chapter, we also need to add the sys crate to the list of dependencies.
@@ -169,7 +197,7 @@ In the automatically generated code, the sys crate is always called <code>ffi</c
 For our example, this results in the following dependencies:</p>
 <pre><code class="language-toml">[dependencies]
 libc = &quot;0.2&quot;
-bitflags = &quot;1.0&quot;
+bitflags = &quot;2.2&quot;
 
 [dependencies.ffi]
 package = &quot;pango-sys&quot;
@@ -214,7 +242,6 @@ v1_46 = [&quot;v1_44&quot;]
 v1_48 = [&quot;v1_46&quot;]
 v1_50 = [&quot;v1_48&quot;]
 v1_52 = [&quot;v1_50&quot;]
-dox = [&quot;glib/dox&quot;, &quot;gobject/dox&quot;]
 </code></pre>
 <p>You need to change the features in the Cargo.toml of your normal crate to</p>
 <pre><code class="language-toml">[features]
@@ -244,7 +271,6 @@ v1_46 = [&quot;ffi/v1_46&quot;, &quot;v1_44&quot;]
 v1_48 = [&quot;ffi/v1_48&quot;, &quot;v1_46&quot;]
 v1_50 = [&quot;ffi/v1_50&quot;, &quot;v1_48&quot;]
 v1_52 = [&quot;ffi/v1_52&quot;, &quot;v1_50&quot;]
-dox = [&quot;glib/dox&quot;, &quot;gobject/dox&quot;, &quot;ffi/dox&quot;]
 </code></pre>
 <h2 id="the-librs-file"><a class="header" href="#the-librs-file">The lib.rs file</a></h2>
 <p>The lib.rs file will not be replaced when you run gir.
@@ -252,7 +278,7 @@ All the code that gir will generate for us is going to be in src/auto.
 We need to include all <code>auto</code> files in our library.
 To do so, let's update the <code>src/lib.rs</code> file as follows:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span>#![cfg_attr(feature = &quot;dox&quot;, feature(doc_cfg))]
+</span>#![cfg_attr(docsrs, feature(doc_cfg))]
 
 <span class="boring">fn main() {
 </span>pub use auto::*;

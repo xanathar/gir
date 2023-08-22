@@ -71,10 +71,12 @@
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             var html = document.querySelector('html');
-            var sidebar = 'hidden';
+            var sidebar = null;
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
             }
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
@@ -87,11 +89,33 @@
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
                                 <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
@@ -425,10 +449,14 @@ Open the Cargo.toml file and have a look at it.
 Make sure everything under <code>[package]</code> is to your liking.</p>
 <p>Add the following lines to the file:</p>
 <pre><code class="language-toml">[package.metadata.docs.rs]
-features = [&quot;dox&quot;]
+all-features = true
+# For build.rs scripts
+rustc-args = [&quot;--cfg&quot;, &quot;docsrs&quot;]
+# For rustdoc
+rustdoc-args = [&quot;--cfg&quot;, &quot;docsrs&quot;]
 </code></pre>
-<p>This automatically activates the <code>dox</code> feature if you chose to publish the bindings and docs.rs tries to build the documentation.
-The <code>dox</code> feature skips linking the C libraries and allows docs.rs to build the documentation without having the underlying libraries installed.
+<p>This automatically activates the <code>docsrs</code> attribute if you chose to publish the bindings and docs.rs tries to build the documentation.
+With the <code>docsrs</code> attribute, the crate skips linking the C libraries and allows docs.rs to build the documentation without having the underlying libraries installed.
 Even if you don't plan to publish it, this line is not going to hurt.</p>
 <p>We also need to add <code>libc</code>, <code>bitflags</code>, <code>glib</code> and <code>glib-sys</code> and all other dependencies we used in the sys crate as dependencies.
 Because we are creating a wrapper for the sys crate, which we generated in the previous chapter, we also need to add the sys crate to the list of dependencies.
@@ -436,7 +464,7 @@ In the automatically generated code, the sys crate is always called <code>ffi</c
 For our example, this results in the following dependencies:</p>
 <pre><code class="language-toml">[dependencies]
 libc = &quot;0.2&quot;
-bitflags = &quot;1.0&quot;
+bitflags = &quot;2.2&quot;
 
 [dependencies.ffi]
 package = &quot;pango-sys&quot;
@@ -481,7 +509,6 @@ v1_46 = [&quot;v1_44&quot;]
 v1_48 = [&quot;v1_46&quot;]
 v1_50 = [&quot;v1_48&quot;]
 v1_52 = [&quot;v1_50&quot;]
-dox = [&quot;glib/dox&quot;, &quot;gobject/dox&quot;]
 </code></pre>
 <p>You need to change the features in the Cargo.toml of your normal crate to</p>
 <pre><code class="language-toml">[features]
@@ -511,7 +538,6 @@ v1_46 = [&quot;ffi/v1_46&quot;, &quot;v1_44&quot;]
 v1_48 = [&quot;ffi/v1_48&quot;, &quot;v1_46&quot;]
 v1_50 = [&quot;ffi/v1_50&quot;, &quot;v1_48&quot;]
 v1_52 = [&quot;ffi/v1_52&quot;, &quot;v1_50&quot;]
-dox = [&quot;glib/dox&quot;, &quot;gobject/dox&quot;, &quot;ffi/dox&quot;]
 </code></pre>
 <h2 id="the-librs-file"><a class="header" href="#the-librs-file">The lib.rs file</a></h2>
 <p>The lib.rs file will not be replaced when you run gir.
@@ -519,7 +545,7 @@ All the code that gir will generate for us is going to be in src/auto.
 We need to include all <code>auto</code> files in our library.
 To do so, let's update the <code>src/lib.rs</code> file as follows:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span>#![cfg_attr(feature = &quot;dox&quot;, feature(doc_cfg))]
+</span>#![cfg_attr(docsrs, feature(doc_cfg))]
 
 <span class="boring">fn main() {
 </span>pub use auto::*;
@@ -894,8 +920,15 @@ You can do this by running the following commands:</p>
 <pre><code class="language-sh">rustdoc-stripper -s -n
 rustdoc-stripper -g -o docs.md
 </code></pre>
-<p>Try building the documentation and also try it with the various features you might have</p>
+<p>Try building the documentation and also try it with the various features you might have:</p>
 <pre><code class="language-sh">cargo doc
+</code></pre>
+<p>For building the docs on systems without the required dependencies installed (for example docs.rs or CI jobs), you can use the <code>docsrs</code> attribute.
+This will disable the linking of the underlying C libraries and won't throw an error if those libraries are not available.</p>
+<p>On top of that, the <code>docsrs</code> attribute will enable the <a href="https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html">doc_cfg feature</a> which is only available in the nightly compiler toolchain at the time of writing.
+This is mostly useful for clarifying feature requirements through the docs.</p>
+<p>To build the docs with the <code>docsrs</code> attribute, you can use the following command:</p>
+<pre><code class="language-sh">RUSTFLAGS='--cfg docsrs' RUSTDOCFLAGS='--cfg docsrs' cargo +nightly doc --all-features
 </code></pre>
 <p>Congratulations, we are done.
 You have successfully created the safe wrapper for a C library!</p>
@@ -906,7 +939,7 @@ All that is needed is to add some information to your Cargo.toml.
 Gir will not override them when you re-generate bindings.
 Easy, right.
 If this is your first time publishing a crate, you can find a detailed guide <a href="https://doc.rust-lang.org/cargo/reference/publishing.html">here</a>.</p>
-<p>Before you publish the crate, please ensure docs.rs will activate the dox feature and the dox feature of the safe wrapper crate also activates the feature of its dependencies and the unsafe FFI bindings you created.
+<p>Before you publish the crate, please ensure docs.rs will activate the <code>docsrs</code> attribute.
 Feel free to go back to the chapter about the <a href="tutorial/high_level_rust_api.html#the-cargotoml-file">Cargo.toml file of the safe wrapper</a> to read more about it.
 If you skip this step, your crate and all crates depending on it will not have documentation available on docs.rs.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="configuration"><a class="header" href="#configuration">Configuration</a></h1>
@@ -1098,6 +1131,8 @@ visibility = &quot;pub&quot; # or 'crate' / 'private' / 'super'
 # The default value to used for the `Default` implementation. It only
 # works for flags and enums. You have to pass the &quot;GIR&quot; member name.
 default_value = &quot;fill&quot;
+# Change the name of the generated trait to e.g avoid naming conflicts
+trait_name = &quot;TraitnameExt&quot; 
 # In case you don't want to generate the documentation for this type.
 generate_doc = false
     # define overrides for function
@@ -1174,6 +1209,31 @@ generate_doc = false
             [[object.function.parameter.callback_parameter]]
             name = &quot;name_of_the_callback_parameter&quot;
             nullable = true
+    # virtual methods support the same configuration for parameters and return types as functions
+    # note that they are not used for code generation yet.
+    [[object.virtual_method]]
+    # filter virtual method from object
+    name = &quot;set_website_label&quot;
+    # alternative way to apply override for many functions. Will be used with '^' and '$' on both sides
+    # can be used instead of `name` almost anywhere
+    # pattern = &quot;[gs]et_value&quot;
+    # don't generate function
+    ignore = true
+    # override starting version
+    version = &quot;3.12&quot;
+    # prefixed function with #[cfg(mycond)]
+    cfg_condition = &quot;mycond&quot;
+    # prefixed function with #[doc(hidden)]
+    doc_hidden = true
+    # define a list of function parameters to be ignored when the documentation is generated
+    doc_ignore_parameters = [&quot;some_user_data_param&quot;]
+    # write function docs to trait other than default &quot;xxxExt&quot;,
+    # also works in [object.signal] and [object.property]
+    doc_trait_name = &quot;SocketListenerExtManual&quot;
+    # to rename the generated function
+    rename = &quot;something_else&quot;
+    # In case you don't want to generate the documentation for this method.
+    generate_doc = false
     [[object.signal]]
     name = &quot;activate-link&quot;
     # replace trampoline bool return type with `Inhibit`
