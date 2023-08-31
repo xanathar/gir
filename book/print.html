@@ -736,7 +736,9 @@ To fix it, we just add <code>&quot;NameOfYourLibrary.*&quot;</code> to the <code
 </ul>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>pub use auto::functions::*;
+</span>pub mod functions {
+  pub use super::auto::functions::*;
+}
 <span class="boring">}</span></code></pre></pre>
 <h2 id="generating-the-code"><a class="header" href="#generating-the-code">Generating the code</a></h2>
 <p>In order to generate the code for the safe wrapper, we follow these steps until all objects have been generated:</p>
@@ -873,7 +875,7 @@ A little tip about reexporting manual traits: in <code>gtk3-rs</code>, we create
 The <code>src/prelude.rs</code> file looks like this:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>pub use auto::traits::*;
+</span>pub use crate::auto::traits::*;
 pub use region::RegionExtManual;
 <span class="boring">}</span></code></pre></pre>
 <p>Then it's reexported as follows from the <code>src/lib.rs</code> file:</p>
@@ -1040,10 +1042,6 @@ deprecate_by_min_version = true
 # can also take path to the directory for saving &quot;versions.txt&quot; or filename with extension.
 # Relative to target_path
 single_version_file = true
-# Generation of Display trait enabled for all enums, classes, etc.,
-# which do not have an override for `generate_display_trait`
-# (defaults to &quot;true&quot;)
-generate_display_trait = true
 # Trust the nullability information about return values. If this is disabled
 # then any pointer return type is assumed to be nullable unless there is an
 # explicit override for it.
@@ -1119,8 +1117,6 @@ module_name = &quot;soome_class&quot;
 version = &quot;3.12&quot;
 # prefixed object in mod.rs with #[cfg(mycond)]
 cfg_condition = &quot;mycond&quot;
-# if you want to override default option Ex. for write your own Display implementation
-generate_display_trait = false
 # if you want to generate builder with name SomeClassBuilder
 generate_builder = true
 # trust return value nullability annotations for this specific type.
