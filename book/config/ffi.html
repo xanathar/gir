@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en" class="light" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -10,7 +10,7 @@
         
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff">
 
         <link rel="icon" href="../favicon.svg">
         <link rel="shortcut icon" href="../favicon.png">
@@ -31,7 +31,7 @@
         <!-- Custom theme stylesheets -->
 
     </head>
-    <body>
+    <body class="sidebar-visible no-js">
     <div id="body-container">
         <!-- Provide site root to javascript -->
         <script>
@@ -61,31 +61,38 @@
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
-            html.classList.remove('no-js')
             html.classList.remove('light')
             html.classList.add(theme);
-            html.classList.add('js');
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
         </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var html = document.querySelector('html');
+            var body = document.querySelector('body');
             var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
             }
-            html.classList.remove('sidebar-visible');
-            html.classList.add("sidebar-" + sidebar);
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
                 <ol class="chapter"><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="../tutorial/introduction.html"><strong aria-hidden="true">2.</strong> Tutorial</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../tutorial/preparation.html"><strong aria-hidden="true">2.1.</strong> Preparation</a></li><li class="chapter-item expanded "><a href="../tutorial/finding_gir_files.html"><strong aria-hidden="true">2.2.</strong> Finding .gir files</a></li><li class="chapter-item expanded "><a href="../tutorial/sys_library.html"><strong aria-hidden="true">2.3.</strong> Generating the FFI library</a></li><li class="chapter-item expanded "><a href="../tutorial/high_level_rust_api.html"><strong aria-hidden="true">2.4.</strong> Generating the Rust API</a></li><li class="chapter-item expanded "><a href="../tutorial/handling_errors.html"><strong aria-hidden="true">2.5.</strong> Handling generation errors</a></li><li class="chapter-item expanded "><a href="../tutorial/generate_docs.html"><strong aria-hidden="true">2.6.</strong> Generating documentation</a></li></ol></li><li class="chapter-item expanded "><a href="../config/introduction.html"><strong aria-hidden="true">3.</strong> Configuration files</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../config/ffi.html" class="active"><strong aria-hidden="true">3.1.</strong> FFI Options</a></li><li class="chapter-item expanded "><a href="../config/api.html"><strong aria-hidden="true">3.2.</strong> API Options</a></li><li class="chapter-item expanded "><a href="../config/name_override.html"><strong aria-hidden="true">3.3.</strong> Crate name override</a></li></ol></li></ol>
             </div>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
         </nav>
 
         <!-- Track and set sidebar scroll position -->
@@ -116,9 +123,9 @@
                                 <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
-                        </button>
+                        </label>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
                             <i class="fa fa-paint-brush"></i>
                         </button>
@@ -177,28 +184,28 @@
 So in this mode, the TOML file is mostly used to ignore some objects.
 To do so, you need to add its fullname to an <code>ignore</code> array.
 Example:</p>
-<pre><code class="language-toml">ignore = [&quot;Gtk.Widget&quot;, &quot;Gtk.Window&quot;]
+<pre><code class="language-toml">ignore = ["Gtk.Widget", "Gtk.Window"]
 </code></pre>
 <p>And that's all.
 Neither <code>GtkWidget</code> nor <code>GtkWindow</code> (alongside with their functions) will be generated.</p>
-<p>You also need to add any needed external libraries in the &quot;external_libraries&quot; parameter.
+<p>You also need to add any needed external libraries in the "external_libraries" parameter.
 Example:</p>
 <pre><code class="language-toml">[options]
 external_libraries = [
-   &quot;GLib&quot;,
-   &quot;GObject&quot;,
+   "GLib",
+   "GObject",
 ]
 </code></pre>
 <p>You can specify a few other options:</p>
 <pre><code class="language-toml">[options]
-girs_directories = [&quot;../gir-files&quot;]
-library = &quot;GtkSource&quot;
-version = &quot;3.0&quot;
-min_cfg_version = &quot;3.0&quot;
-target_path = &quot;.&quot;
+girs_directories = ["../gir-files"]
+library = "GtkSource"
+version = "3.0"
+min_cfg_version = "3.0"
+target_path = "."
 # Path where lib.rs generated (defaults to &lt;target_path&gt;/src)
-# auto_path = &quot;src&quot;
-work_mode = &quot;sys&quot;
+# auto_path = "src"
+work_mode = "sys"
 # If true then build.rs will be split into 2 parts:
 # always generated build_version.rs,
 # and build.rs that generated only if not exists.
@@ -206,28 +213,28 @@ work_mode = &quot;sys&quot;
 split_build_rs = false
 # Adds extra versions to features
 extra_versions = [
-   &quot;3.15&quot;,
-   &quot;3.17&quot;,
+   "3.15",
+   "3.17",
 ]
 # Change library version for version
 [[lib_version_overrides]]
-version = &quot;3.16&quot;
-lib_version = &quot;3.16.1&quot;
+version = "3.16"
+lib_version = "3.16.1"
 # Add extra dependencies to feature
 [[feature_dependencies]]
-version = &quot;3.16&quot;
+version = "3.16"
 dependencies = [
-  &quot;glib-sys/v3_16&quot;
+  "glib-sys/v3_16"
 ]
 </code></pre>
 <p>Also, you can add rust cfg conditions on objects, functions and constants, for example, when flagging for conditional compilation:</p>
 <pre><code class="language-toml">[[object]]
-name = &quot;GstGL.GLDisplayEGL&quot;
-status = &quot;generate&quot;
-cfg_condition = &quot;feature = \&quot;egl\&quot;&quot;
+name = "GstGL.GLDisplayEGL"
+status = "generate"
+cfg_condition = "feature = \"egl\""
     [[object.function]]
-    pattern = &quot;.*&quot;
-    cfg_condition = &quot;feature = \&quot;egl\&quot;&quot;
+    pattern = ".*"
+    cfg_condition = "feature = \"egl\""
 </code></pre>
 <h2 id="generation-in-ffi-mode"><a class="header" href="#generation-in-ffi-mode">Generation in FFI mode</a></h2>
 <p>When you're ready, let's generate the FFI part.
@@ -248,7 +255,7 @@ Just take care about the dependencies and the crate's name generated in the <cod
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="../config/api.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../config/api.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -262,7 +269,7 @@ Just take care about the dependencies and the crate's name generated in the <cod
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="../config/api.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../config/api.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
