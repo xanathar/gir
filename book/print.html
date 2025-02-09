@@ -1284,23 +1284,8 @@ version = "3.12"
     # define starting version when member added
     version = "3.18"
 </code></pre>
-<p>For enumerations, bitflags and boxed types, you can also configure
-<code>#[derive()]</code> clauses, optionally conditioned to a <code>cfg</code>).</p>
-<p>Providing <code>#[derive()]</code> clauses explicitly, behaves differently depending on
-the type they are added to:</p>
-<ul>
-<li>for boxed types, the provided <code>#[derive()]</code> clauses replace all the ones
-that are normally derived by default (i.e. <code>#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]</code>);
-if the default derives are needed, they must be explicitly listed.</li>
-<li>for inline_boxed types, only the <code>Debug</code> trait can be specified; providing
-any other trait will cause gir to fail with an error.</li>
-<li>for enumerations, the provided <code>#[derive()]</code> clauses replace all the ones
-that are normally derived by default (i.e. <code>#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]</code>)
-with the exception of <code>Copy</code> and <code>Clone</code> that are always derived;
-if the default derives are needed, they must be explicitly listed.</li>
-<li>for bitflags, the provided <code>#[derive()]</code> clauses are simply added to
-the derives implemented by default.</li>
-</ul>
+<p>For enumerations and bitflags, you can also configure additional <code>#[derive()]</code>
+clauses optionally conditioned to a <code>cfg</code>.</p>
 <pre><code class="language-toml">[[object]]
 name = "Gst.Format"
 status = "generate"
