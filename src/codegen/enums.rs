@@ -569,10 +569,10 @@ impl FromGlib<{sys_crate_name}::{ffi_name}> for {name} {{
 impl std::str::FromStr for {name} {{
     type Err = {boolerror};
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {{
+    fn from_str(s: &str) -> Result<Self, <Self as std::str::FromStr>::Err> {{
         match s {{",
         name = enum_.name,
-        boolerror = use_glib_type(env, "Error::BoolError"),
+        boolerror = use_glib_type(env, "error::BoolError"),
     )?;
 
     for member in &members {
@@ -580,7 +580,12 @@ impl std::str::FromStr for {name} {{
         cfg_condition_no_doc(w, member.cfg_condition.as_ref(), false, 3)?;
         writeln!(w, "\t\t\t\"{}\" => Ok(Self::{}),", member.nick, member.name)?;
     }
-    writeln!(w, "\t\t\t_ => Err({}(format!(\"'{{s}}' is not a valid value for {}\").into()),", use_glib_type(env, "bool_error!"), enum_.name)?;
+    writeln!(
+        w,
+        "\t\t\t_ => Err({}(\"'{{}}' is not a valid value for {}\", s)),",
+        use_glib_type(env, "bool_error!"),
+        enum_.name
+    )?;
     writeln!(w, "\t\t}}\n\t}}\n}}\n")?;
 
     // Generate From<&str> trait implementation, piggy-backing on FromStr
@@ -593,10 +598,12 @@ impl std::str::FromStr for {name} {{
 impl std::convert::TryFrom<&str> for {name} {{
     type Error = <Self as std::str::FromStr>::Err;
 
-    fn try_from(s: &str) -> Result<Self, Self::Error> {{
+    fn try_from(s: &str) -> Result<Self, <Self as std::convert::TryFrom<&str>>::Error> {{
         <Self as std::str::FromStr>::from_str(s)
     }}
-}}", name = enum_.name)?;
+}}",
+        name = enum_.name
+    )?;
     writeln!(w)?;
 
     Ok(())
