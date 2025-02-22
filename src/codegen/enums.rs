@@ -565,8 +565,7 @@ impl FromGlib<{sys_crate_name}::{ffi_name}> for {name} {{
     allow_deprecated(w, any_deprecated_version, false, 0)?;
     writeln!(
         w,
-        "#[doc(hidden)]
-impl std::str::FromStr for {name} {{
+        "impl std::str::FromStr for {name} {{
     type Err = {boolerror};
 
     fn from_str(s: &str) -> Result<Self, <Self as std::str::FromStr>::Err> {{
@@ -594,8 +593,7 @@ impl std::str::FromStr for {name} {{
     allow_deprecated(w, any_deprecated_version, false, 0)?;
     writeln!(
         w,
-        "#[doc(hidden)]
-impl std::convert::TryFrom<&str> for {name} {{
+        "impl std::convert::TryFrom<&str> for {name} {{
     type Error = <Self as std::str::FromStr>::Err;
 
     fn try_from(s: &str) -> Result<Self, <Self as std::convert::TryFrom<&str>>::Error> {{
